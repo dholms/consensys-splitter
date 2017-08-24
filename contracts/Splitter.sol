@@ -4,6 +4,10 @@ contract Splitter{
     address public owner;
     mapping(address=>uint) public balances;
 
+    event LogSplit(address sender, address recipient1, address recipient2, uint amount);
+    event LogWithdraw(address retriever, uint amount);
+    event LogDestroy();
+
     function Splitter(){
         owner = msg.sender;
     }
@@ -22,6 +26,8 @@ contract Splitter{
         uint extra = msg.value%2;
         balances[owner] += extra;
 
+        LogSplit(msg.sender, recipient1, recipient2, msg.value);
+
         return true;
     }
 
@@ -29,10 +35,14 @@ contract Splitter{
         uint balance = balances[msg.sender];
         require(balance > 0);
         msg.sender.transfer(balance);
+
+        LogWithdraw(msg.sender, balance);
+
         return true;
     }
 
     function kill() onlyMe() public{
+        LogDestroy();
         selfdestruct(owner);
     }
 }
