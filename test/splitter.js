@@ -40,7 +40,7 @@ contract('Splitter', function(accounts) {
     var extra = 51%2;
 
     return contract.split(bob, carol,{from:owner, value: value})
-    .then(function(success){
+    .then(function(tx){
       return contract.balances(bob);
     })
     .then(function(balance){
@@ -53,16 +53,35 @@ contract('Splitter', function(accounts) {
     })
     .then(function(balance){
       assert.equal(balance, extra, "Owner did not get extra value");
+    });
+  });
+
+  it("Should allow withdrawals", function(){
+    var bobBalance= web3.eth.getBalance(bob);
+    var carolBalance= web3.eth.getBalance(carol);
+    var gasPrice = 20;
+
+    var value = 50;
+    var half = Math.floor(value/2);
+
+    return contract.split(bob, carol, {from:owner, value:value})
+    .then(function(tx){
+      return contract.retrieveFunds({from:bob, gasPrice: gasPrice})
+    })
+    .then(function(tx){
+      var txCost = tx.receipt.gasUsed * gasPrice;
+      var expected = bobBalance.plus(web3.toBigNumber(half)).minus(txCost);
+      var newBalance = web3.eth.getBalance(bob);
+      assert.deepEqual(expected, newBalance, "Did not withdraw expected amounts")
+      return contract.retrieveFunds({from:carol, gasPrice: gasPrice})
+    })
+    .then(function(tx){
+      var txCost = tx.receipt.gasUsed * gasPrice;
+      var expected = carolBalance.plus(web3.toBigNumber(half)).minus(txCost);
+      var newBalance = web3.eth.getBalance(carol);
+      assert.deepEqual(expected, newBalance, "Did not withdraw expected amounts")
     })
 
-    // it("Should allow withdrawals", function(){
-    //   var bobBalance= web3.eth.geBalance(bob);
-    //
-    //   return contract.retrieveFunds({from:bob})
-    //   .then(function(success){
-    //
-    //   })
-    // })
-  })
+  });
 
 });
