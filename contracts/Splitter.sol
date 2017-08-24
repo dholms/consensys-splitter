@@ -2,13 +2,10 @@ pragma solidity ^0.4.13;
 
 contract Splitter{
     address public owner;
-    address[] public recipients;
-    uint    public balance;
+    mapping(address=>uint) public balances;
 
-    function Splitter(address[] _recipients){
-        owner= msg.sender;
-        recipients = _recipients;
-        balance = 0;
+    function Splitter(){
+        owner = msg.sender;
     }
 
     modifier onlyMe(){
@@ -16,22 +13,23 @@ contract Splitter{
         _;
     }
 
-    function split() onlyMe() public payable returns(bool success){
-        require(msg.value > recipients.length);
-        balance += msg.value;
-        uint toSend = msg.value/recipients.length;
-        uint getsExtra = msg.value%recipients.length;
 
-        for(uint i=0;i<recipients.length;i++){
-            uint amount = toSend;
-            if(i < getsExtra) amount++;
-            sendFunds(recipients[i], amount);
-        }
+    function split(address recipient1, address recipient2) public payable returns(bool success){
+        require(msg.value > 1);
+        uint toSend = msg.value/2;
+        balances[recipient1] += toSend;
+        balances[recipient2] += toSend;
+        uint extra = msg.value%2;
+        balances[owner] += extra;
+
         return true;
     }
 
-    function sendFunds(address recipient, uint amount) internal{
-        recipient.transfer(amount);
+    function retrieveFunds() public returns(bool success){
+        uint balance = balances[msg.sender];
+        require(balance > 0);
+        msg.sender.transfer(balance);
+        return true;
     }
 
     function kill() onlyMe() public{
