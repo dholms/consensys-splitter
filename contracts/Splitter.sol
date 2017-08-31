@@ -34,9 +34,8 @@ contract Splitter{
     function retrieveFunds() public returns(bool success){
         uint balance = balances[msg.sender];
         require(balance > 0);
-        msg.sender.transfer(balance);
         balances[msg.sender] = 0;
-
+        msg.sender.transfer(balance);      
         LogWithdraw(msg.sender, balance);
 
         return true;

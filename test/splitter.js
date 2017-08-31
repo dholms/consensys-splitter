@@ -19,7 +19,7 @@ contract('Splitter', function(accounts) {
 
   it("should split value between accounts evenly", function() {
     var value = 50;
-    var half = Math.floor(value/2);
+    var half = 25;
 
     return contract.split(bob, carol,{from:owner, value: value})
     .then(function(success){
@@ -36,8 +36,8 @@ contract('Splitter', function(accounts) {
 
   it("should give extra value to the owner", function(){
     var value = 51;
-    var half = Math.floor(value/2);
-    var extra = 51%2;
+    var half = 25;
+    var extra = 1;
 
     return contract.split(bob, carol,{from:owner, value: value})
     .then(function(tx){
@@ -62,7 +62,7 @@ contract('Splitter', function(accounts) {
     var gasPrice = 20;
 
     var value = 50;
-    var half = Math.floor(value/2);
+    var half = 25;
 
     return contract.split(bob, carol, {from:owner, value:value})
     .then(function(tx){
@@ -72,14 +72,14 @@ contract('Splitter', function(accounts) {
       var txCost = tx.receipt.gasUsed * gasPrice;
       var expected = bobBalance.plus(web3.toBigNumber(half)).minus(txCost);
       var newBalance = web3.eth.getBalance(bob);
-      assert.deepEqual(expected, newBalance, "Did not withdraw expected amounts")
+      assert.strictEqual(expected.toString(10), newBalance.toString(10), "Did not withdraw expected amounts")
       return contract.retrieveFunds({from:carol, gasPrice: gasPrice})
     })
     .then(function(tx){
       var txCost = tx.receipt.gasUsed * gasPrice;
       var expected = carolBalance.plus(web3.toBigNumber(half)).minus(txCost);
       var newBalance = web3.eth.getBalance(carol);
-      assert.deepEqual(expected, newBalance, "Did not withdraw expected amounts")
+      assert.strictEqual(expected.toString(10), newBalance.toString(10), "Did not withdraw expected amounts")
     })
 
   });
